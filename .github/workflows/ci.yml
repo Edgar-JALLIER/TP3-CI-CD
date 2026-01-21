@@ -63,9 +63,12 @@ jobs:
           name: api-test-reports
           path: api-test-reports/
 
-  security-scan:
+security-scan:
     needs: api-tests
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -93,9 +96,12 @@ jobs:
         with:
           token: ${{ github.token }}
           target: 'http://localhost:8080/'
-          # L'action va créer l'artefact elle-même avec ce nom
-          artifact_name: 'zap-security-report'
+          # ON SUPPRIME artifact_name ICI pour éviter l'erreur de container
           fail_action: false
 
-      # ATTENTION : Ne rajoute SURTOUT PAS d'étape "upload-artifact" ici.
-      # ZAP s'en est déjà occupé à l'étape précédente.
+      - name: Upload Security Report (Manual)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: final-security-report
+          path: "*.html" # Récupère le rapport généré par ZAP sur le disque
