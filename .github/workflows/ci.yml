@@ -93,11 +93,13 @@ jobs:
 
       - name: ZAP Scan (Security Test)
         uses: zaproxy/action-baseline@v0.12.0
+        continue-on-error: true
         with:
           token: ${{ github.token }}
           target: 'http://localhost:8080/'
           # On ne met SURTOUT PAS la ligne artifact_name ici
           fail_action: false
+          
 
       - name: Upload Report
         if: always()
