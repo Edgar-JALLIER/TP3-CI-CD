@@ -84,31 +84,18 @@ jobs:
       - name: Wait for API
         run: |
           for i in {1..20}; do
-            if curl -sSf http://localhost:8080/health > /dev/null; then 
-              echo "API is ready for scan"
-              exit 0
-            fi
+            if curl -sSf http://localhost:8080/health > /dev/null; then exit 0; fi
             sleep 2
           done
-          exit 1
 
       - name: ZAP Scan (Security Test)
         uses: zaproxy/action-baseline@v0.12.0
         with:
           token: ${{ github.token }}
           target: 'http://localhost:8080/'
-          # Cette option est la clé : elle dit à ZAP de créer un rapport HTML
+          # L'action va créer l'artefact elle-même avec ce nom
           artifact_name: 'zap-security-report'
           fail_action: false
 
-      # L'étape d'upload manuelle est souvent inutile car ZAP le fait seul,
-      # mais si tu veux vraiment forcer la récupération de TOUS les rapports :
-      - name: Upload Security Reports (Manual Fallback)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: all-security-reports
-          path: |
-            *.html
-            *.json
-            *.xml
+      # ATTENTION : Ne rajoute SURTOUT PAS d'étape "upload-artifact" ici.
+      # ZAP s'en est déjà occupé à l'étape précédente.
