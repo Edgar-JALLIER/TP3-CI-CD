@@ -96,12 +96,14 @@ jobs:
         with:
           token: ${{ github.token }}
           target: 'http://localhost:8080/'
-          # ON SUPPRIME artifact_name ICI pour éviter l'erreur de container
+          # On empêche ZAP d'essayer de créer son propre artefact
+          artifact_name: '' 
           fail_action: false
 
       - name: Upload Security Report (Manual)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: final-security-report
-          path: "*.html" # Récupère le rapport généré par ZAP sur le disque
+          # On utilise un nom UNIQUE qui n'a jamais été utilisé avant
+          name: mon-rapport-securite-final
+          path: "report_html.html"
