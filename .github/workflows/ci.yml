@@ -96,14 +96,12 @@ jobs:
         with:
           token: ${{ github.token }}
           target: 'http://localhost:8080/'
-          # On empêche ZAP d'essayer de créer son propre artefact
-          artifact_name: '' 
+          # On ne met SURTOUT PAS la ligne artifact_name ici
           fail_action: false
 
-      - name: Upload Security Report (Manual)
+      - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          # On utilise un nom UNIQUE qui n'a jamais été utilisé avant
-          name: mon-rapport-securite-final
-          path: "report_html.html"
+          name: zap-results # Le nom du dossier que tu téléchargeras
+          path: report_html.html # Le fichier généré par ZAP
