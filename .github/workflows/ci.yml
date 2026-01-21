@@ -60,7 +60,7 @@ jobs:
           path: api-test-reports/
 
   security-scan:
-    needs: api-tests # Doit correspondre exactement au nom du job ci-dessus
+    needs: api-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -75,25 +75,36 @@ jobs:
       - name: Build and Start App
         run: |
           mvn -q clean package
-          nohup java -jar target/formation-cicd-test-tp-03-1.0-SNAPSHOT.jar > app.log 2>&1 &
+          nohup java -jar target/*.jar > app.log 2>&1 &
 
       - name: Wait for API
         run: |
           for i in {1..20}; do
-            if curl -sSf http://localhost:8080/health > /dev/null; then exit 0; fi
+            if curl -sSf http://localhost:8080/health > /dev/null; then 
+              echo "API is ready for scan"
+              exit 0
+            fi
             sleep 2
           done
+          exit 1
 
       - name: ZAP Scan (Security Test)
-        uses: zaproxy/action-baseline@v0.11.0
+        uses: zaproxy/action-baseline@v0.12.0
         with:
+          token: ${{ github.token }}
           target: 'http://localhost:8080/'
-          # On autorise les warnings pour ne pas bloquer le TP au premier scan
-          fail_action: false 
+          # Cette option est la clé : elle dit à ZAP de créer un rapport HTML
+          artifact_name: 'zap-security-report'
+          fail_action: false
 
-      - name: Upload Security Report
+      # L'étape d'upload manuelle est souvent inutile car ZAP le fait seul,
+      # mais si tu veux vraiment forcer la récupération de TOUS les rapports :
+      - name: Upload Security Reports (Manual Fallback)
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: zap-security-report
-          path: 'zap_report.html'
+          name: all-security-reports
+          path: |
+            *.html
+            *.json
+            *.xml
